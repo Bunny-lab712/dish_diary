@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#E11D5A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dish Diary">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Dish Diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF2EC;--surface:#FFFFFF;--ink:#17261F;--muted:#5C6B63;--line:#D5DDD3;--accent:#E0364F;--accent-ink:#fff;--gold:#F0B429;--chip:#DDE6DA;
+--display:"Bricolage Grotesque","Trebuchet MS",sans-serif;--body:"Instrument Sans","Segoe UI",Arial,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101A15;--surface:#18261F;--ink:#EAF1EC;--muted:#98A89E;--line:#2A3C32;--accent:#FF5D74;--accent-ink:#17110F;--chip:#22352B;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101A15;--surface:#18261F;--ink:#EAF1EC;--muted:#98A89E;--line:#2A3C32;--accent:#FF5D74;--accent-ink:#17110F;--chip:#22352B;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 20px 96px}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
+h1{font:800 clamp(2.4rem,7vw,4.2rem)/.95 var(--display);letter-spacing:-.03em;margin:0}
+.sub{color:var(--muted);margin:8px 0 0;max-width:36ch}
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:10px 18px;cursor:pointer;font-weight:600}
+.btn:hover{background:var(--chip)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.stat b{display:block;font:700 1.7rem/1.1 var(--display)}
+.stat span{color:var(--muted);font-size:.9rem}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.tools input,.tools select{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.tools input{flex:1 1 220px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.chip{border:0;background:var(--chip);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.card.hit{outline:4px solid var(--gold)}
+.pic{height:150px;background:var(--chip) center/cover;display:grid;place-items:center;font-size:3.4rem;position:relative}
+.fav{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:0;background:var(--surface);cursor:pointer;font-size:1.2rem;line-height:1}
+.body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.rest{color:var(--muted);font-weight:600;font-size:.92rem}
+.dish{font:700 1.35rem/1.15 var(--display);margin:0}
+.stars{color:var(--gold);letter-spacing:2px;font-size:1.05rem}
+.meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.88rem;color:var(--muted)}
+.loc{color:var(--ink);font-size:.92rem;text-decoration:underline;text-underline-offset:3px}
+.note{font-size:.93rem;margin:2px 0 0}
+.acts{display:flex;gap:14px;margin-top:auto;padding-top:10px}
+.link{background:none;border:0;padding:0;cursor:pointer;color:var(--muted);text-decoration:underline;font-size:.88rem}
+.empty{text-align:center;padding:56px 16px;border:2px dashed var(--line);border-radius:24px}
+.empty h2{font:700 1.6rem var(--display);margin:0 0 6px}
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 8px 24px rgba(0,0,0,.25);padding:14px 22px}
+dialog{border:0;border-radius:24px;background:var(--surface);color:var(--ink);width:min(560px,94vw);padding:0}
+dialog::backdrop{background:rgba(10,20,15,.55)}
+form,.dlg{padding:24px;display:grid;gap:14px}
+dialog h2{font:800 1.6rem var(--display);margin:0}
+label{display:grid;gap:4px;font-weight:600;font-size:.92rem}
+label input,label select,label textarea,.dlg textarea{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-weight:400;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rate button{background:none;border:0;font-size:1.9rem;color:var(--line);cursor:pointer;padding:0 2px}
+.rate button.on{color:var(--gold)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+[hidden]{display:none!important}
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tab{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:8px 18px;cursor:pointer;font-weight:600}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.locbox{display:grid;gap:8px}.pinst{font-size:.88rem;color:var(--muted);align-self:center}
+.today{background:var(--ink);color:var(--bg);border-radius:18px;padding:16px 20px;margin-bottom:18px;font:600 1.1rem/1.3 var(--display)}
+.when{display:inline-block;background:var(--gold);color:#17261F;border-radius:999px;padding:3px 12px;font-weight:700;font-size:.85rem;align-self:flex-start}
+.when.now{background:var(--accent);color:var(--accent-ink)}
+.btn.sm{padding:6px 14px;font-size:.9rem}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#17261F 0%,#2C4B3C 60%,#7A2433 130%);color:#fff;border-radius:28px;padding:32px 28px 36px}
+.hero::after{content:"🍜 🥘 🌮 🍣 🥗 🍰";position:absolute;right:-8px;bottom:-6px;font-size:2.6rem;opacity:.22;letter-spacing:10px;white-space:nowrap;pointer-events:none}
+.hero h1{font-size:clamp(2rem,6vw,3.4rem);max-width:14ch;color:#fff}
+.hero .sub{color:rgba(255,255,255,.8)}
+.hero .btn{border-color:rgba(255,255,255,.7);color:#fff}
+.hero .btn:hover{background:rgba(255,255,255,.16)}
+.hero .row{align-self:flex-end;position:relative;z-index:1}
+.clog{display:grid;gap:8px;max-height:46vh;overflow:auto}
+.msg{padding:10px 14px;border-radius:16px;max-width:88%;white-space:pre-wrap}
+.msg.u{background:var(--accent);color:var(--accent-ink);justify-self:end}
+.msg.b{background:var(--chip)}
+.st{display:inline-block;align-self:flex-start;border-radius:999px;padding:3px 12px;font-weight:700;font-size:.85rem}
+.st.o{background:#D6F5E1;color:#0E5A2D}
+.st.c{background:#FBD9DE;color:#8A1A2E}
+.ph{font:800 1.5rem var(--display);margin:28px 0 12px}
+.pic.two{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:0;height:160px}
+.im{margin:0;position:relative;overflow:hidden;background:var(--chip)}
+.im img{width:100%;height:100%;object-fit:cover;display:block}
+.im figcaption{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.62);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:999px}
+.anim{animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:scale(1.05) rotate(-1.2deg)}50%{transform:scale(1.13) translateY(-3%) rotate(1.2deg)}}
+.toon::after{content:"✨";position:absolute;top:8px;left:8px;font-size:1.3rem;animation:tw 1.8s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.2) rotate(20deg)}}
+.pv{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pv:empty{display:none}.pv .im{height:130px;border-radius:12px}
+.moods{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mchip{border:0;background:var(--chip);border-radius:999px;padding:6px 12px;cursor:pointer}
+.mchip.on{background:var(--ink);color:var(--bg)}
+.stage{position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,var(--chip),var(--surface));perspective:520px;display:grid;place-items:center}
+.tilt{width:min(78%,150px);aspect-ratio:1;position:relative;transform-style:preserve-3d;transform:rotateX(52deg);animation:sway 5s ease-in-out infinite}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.55),transparent 40%);pointer-events:none}
+.disc{width:100%;height:100%;border-radius:50%;padding:7%;background:radial-gradient(circle,#fff 60%,#e2e2e2 100%);box-shadow:0 2px 0 #d2d2d2,0 4px 0 #c6c6c6,0 6px 0 #bbb,0 8px 0 #afafaf,0 10px 0 #a3a3a3,0 22px 22px rgba(0,0,0,.35);animation:spin 18s linear infinite}
+.disc img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;filter:saturate(1.35) contrast(1.1) brightness(1.05);box-shadow:inset 0 0 14px rgba(0,0,0,.35)}
+@keyframes spin{to{transform:rotateZ(360deg)}}
+@keyframes sway{0%,100%{transform:rotateX(46deg)}50%{transform:rotateX(58deg)}}
+.steam{position:absolute;bottom:44%;left:44%;width:14px;height:34px;border-radius:50%;background:rgba(255,255,255,.8);filter:blur(7px);opacity:0;animation:rise 2.6s ease-out infinite}
+.steam.s2{left:54%;animation-delay:.9s}.steam.s3{left:36%;animation-delay:1.7s}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}30%{opacity:.8}100%{transform:translateY(-46px) scale(1.5);opacity:0}}
+.stage .cap{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.62);color:#fff;font-size:.72rem;padding:2px 8px;border-radius:999px}
+.pv .stage{height:130px;border-radius:12px}.pv .tilt{width:96px}
+.im.toon img{object-fit:contain}
+.bar{display:flex;align-items:center;gap:10px;margin:8px 0}
+.bar b{flex:0 0 110px;font-weight:600;font-size:.92rem}
+.bar i{display:block;height:14px;border-radius:8px;background:var(--accent);min-width:4px}
+.bar span{color:var(--muted);font-size:.88rem}
+.bdg{display:inline-block;background:var(--chip);border-radius:999px;padding:8px 14px;font-weight:600;margin:0 8px 8px 0}
+.bdg.off{opacity:.45;filter:grayscale(1)}
+@media(prefers-reduced-motion:reduce){.tilt,.disc,.steam{animation:none}}
+@media(prefers-reduced-motion:reduce){.anim,.toon::after{animation:none}}
+.dlg input:not([type=checkbox]){background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;flex:1 1 200px;width:100%}
+.who{display:inline-block;background:rgba(255,255,255,.14);border-radius:999px;padding:4px 14px;font-size:.88rem;font-weight:600;margin-bottom:14px}
+@media(max-width:520px){.two{grid-template-columns:1fr}.stats b{font-size:1.3rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ===== Vibe pass: colour system, depth, motion ===== */
+:root{--bg:#FFF6EC;--surface:#FFFFFF;--ink:#2A1B3D;--muted:#6A5A7E;--line:#F1DFCF;--chip:#FFE8D3;--accent:#E11D5A;--accent-ink:#FFFFFF;--violet:#7C4DFF;--teal:#0FB5A6;--sun:#FFC93C;--grad:linear-gradient(135deg,#E11D5A,#A21CAF);--blobA:rgba(255,201,60,.38);--blobB:rgba(225,29,90,.16);--blobC:rgba(124,77,255,.16);--hl:rgba(255,201,60,.6);--shadow:0 10px 30px rgba(124,77,255,.14)}
+@media (prefers-color-scheme:dark){:root:not([data-theme='light']){--bg:#150F24;--surface:#201738;--ink:#F7EFFF;--muted:#BBAAD6;--line:#3A2D5C;--chip:#2E2352;--accent:#FF5C8A;--accent-ink:#1B0A12;--grad:linear-gradient(135deg,#FF5C8A,#B36BFF);--blobA:rgba(255,201,60,.10);--blobB:rgba(255,92,138,.14);--blobC:rgba(124,77,255,.22);--hl:rgba(255,201,60,.35);--shadow:0 10px 30px rgba(0,0,0,.4)}}
+:root[data-theme='dark']{--bg:#150F24;--surface:#201738;--ink:#F7EFFF;--muted:#BBAAD6;--line:#3A2D5C;--chip:#2E2352;--accent:#FF5C8A;--accent-ink:#1B0A12;--grad:linear-gradient(135deg,#FF5C8A,#B36BFF);--blobA:rgba(255,201,60,.10);--blobB:rgba(255,92,138,.14);--blobC:rgba(124,77,255,.22);--hl:rgba(255,201,60,.35);--shadow:0 10px 30px rgba(0,0,0,.4)}
+body{background-color:var(--bg);background-image:radial-gradient(520px 380px at 0% 0%,var(--blobA),transparent 70%),radial-gradient(480px 380px at 100% 8%,var(--blobB),transparent 70%),radial-gradient(560px 460px at 50% 100%,var(--blobC),transparent 70%);background-attachment:fixed}
+body::before{content:'';position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+::selection{background:var(--sun);color:#2A1B3D}
+:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--violet)!important;box-shadow:0 0 0 3px rgba(124,77,255,.28)}
+.hero{background:linear-gradient(135deg,#7C4DFF 0%,#E11D5A 58%,#FF8A3D 118%);box-shadow:0 18px 40px rgba(225,29,90,.28)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.22) 2px,transparent 3px) 0 0/26px 26px;opacity:.5;pointer-events:none}
+.hero>div{position:relative;z-index:1}
+.hero h1{text-shadow:0 2px 14px rgba(0,0,0,.18)}
+.hero .btn{background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-color:rgba(255,255,255,.6)}
+.hero .btn:hover{background:rgba(255,255,255,.32)}
+.who{background:rgba(255,255,255,.22)}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 0 10px;margin-bottom:12px;background:linear-gradient(var(--bg) 75%,transparent)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;min-height:44px;padding:10px 18px;background:var(--surface);color:var(--ink);border-color:var(--line);transition:transform .15s,box-shadow .15s}
+.tab:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.tab[aria-pressed='true']{background:var(--grad);color:var(--accent-ink);border-color:transparent;box-shadow:var(--shadow)}
+.tab[data-tab=dish]::before{content:'🍛 '}.tab[data-tab=mkt]::before{content:'🛒 '}.tab[data-tab=eat]::before{content:'🤔 '}.tab[data-tab=ins]::before{content:'📊 '}
+.btn{min-height:44px;transition:transform .15s,box-shadow .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--grad);border-color:transparent;color:var(--accent-ink);box-shadow:0 8px 20px rgba(225,29,90,.28)}
+.btn.primary:hover{filter:none;box-shadow:0 12px 26px rgba(225,29,90,.38)}
+.btn.sm{min-height:36px}
+.fab{padding:14px 24px;font-size:1.02rem}
+.stat{position:relative;overflow:hidden;border:0;background:linear-gradient(160deg,var(--surface),color-mix(in srgb,var(--c,var(--accent)) 16%,var(--surface)));box-shadow:var(--shadow)}
+.stat::before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:var(--c,var(--accent))}
+.stats .stat:nth-child(4n+1){--c:#E11D5A}.stats .stat:nth-child(4n+2){--c:#0FB5A6}.stats .stat:nth-child(4n+3){--c:#FFB300}.stats .stat:nth-child(4n+4){--c:#7C4DFF}
+.stat b{font-size:1.9rem}
+.tools input,.tools select{border-color:var(--line);box-shadow:var(--shadow)}
+.chip{min-height:36px;background:var(--chip);color:var(--ink);transition:transform .15s}
+.chip:hover{transform:translateY(-1px)}
+.chip[aria-pressed='true']{background:var(--grad);color:var(--accent-ink)}
+.card{--cc:#E11D5A;border:0;border-top:6px solid var(--cc);border-radius:22px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
+.grid>.card:nth-child(6n+1){--cc:#E11D5A}.grid>.card:nth-child(6n+2){--cc:#FF8A3D}.grid>.card:nth-child(6n+3){--cc:#FFB300}.grid>.card:nth-child(6n+4){--cc:#0FB5A6}.grid>.card:nth-child(6n+5){--cc:#7C4DFF}.grid>.card:nth-child(6n+6){--cc:#2F8CFF}
+.card:hover{transform:translateY(-5px);box-shadow:0 18px 38px rgba(124,77,255,.24)}
+.pic{background:linear-gradient(135deg,color-mix(in srgb,var(--cc) 28%,var(--surface)),var(--chip))}
+.dish{letter-spacing:-.01em}
+.fav{box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .15s}
+.fav:hover{transform:scale(1.15)}
+.today{background:linear-gradient(120deg,#0B7A75,#5B3FD1);color:#fff;box-shadow:var(--shadow)}
+.when.now{background:var(--grad);color:var(--accent-ink)}
+.ph{display:inline-block;background:linear-gradient(transparent 64%,var(--hl) 64%);padding:0 4px}
+.empty{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+dialog{border-radius:28px;box-shadow:0 30px 80px rgba(42,27,61,.4);background:var(--grad) top/100% 6px no-repeat,var(--surface)}
+dialog::backdrop{background:rgba(42,27,61,.55);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.toast{background:linear-gradient(120deg,#2A1B3D,#4B2B7A);color:#fff;box-shadow:var(--shadow)}
+.mchip.on{background:var(--grad);color:var(--accent-ink)}
+.bar i{background:linear-gradient(90deg,var(--teal),var(--violet))}
+.bdg:nth-child(5n+1){background:#FFD6E3;color:#5C0F2B}.bdg:nth-child(5n+2){background:#CFF5F0;color:#064B46}.bdg:nth-child(5n+3){background:#FFF0B8;color:#5A4300}.bdg:nth-child(5n+4){background:#E3DAFF;color:#2E1A73}.bdg:nth-child(5n+5){background:#FFDCC4;color:#6A2D00}
+@media(prefers-reduced-motion:reduce){.card,.btn,.tab,.chip,.fav{transition:none;transform:none!important}}
+/* ===== Micro-animations ===== */
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes drift{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-10px) rotate(3deg)}}
+@keyframes dots{to{background-position:26px 26px}}
+@keyframes beat{0%{transform:scale(1)}30%{transform:scale(1.5) rotate(-10deg)}60%{transform:scale(.9)}100%{transform:scale(1)}}
+@keyframes dpop{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(31,157,85,.45)}50%{box-shadow:0 0 0 7px rgba(31,157,85,0)}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes ring{0%{box-shadow:0 8px 24px rgba(0,0,0,.25),0 0 0 0 rgba(225,29,90,.45)}70%{box-shadow:0 8px 24px rgba(0,0,0,.25),0 0 0 16px rgba(225,29,90,0)}100%{box-shadow:0 8px 24px rgba(0,0,0,.25),0 0 0 0 rgba(225,29,90,0)}}
+@keyframes wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes hit{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.hero::after{animation:drift 6s ease-in-out infinite}
+.hero::before{animation:dots 28s linear infinite}
+.fx .card,.fx .stat{animation:pop .55s cubic-bezier(.34,1.56,.64,1) both}
+.fx .card:nth-child(2){animation-delay:.06s}.fx .card:nth-child(3){animation-delay:.12s}.fx .card:nth-child(4){animation-delay:.18s}.fx .card:nth-child(5){animation-delay:.24s}.fx .card:nth-child(n+6){animation-delay:.3s}
+.btn:active,.tab:active,.chip:active{transform:scale(.95)}
+.btn.primary{position:relative;overflow:hidden}
+.btn.primary::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);transition:left .55s}
+.btn.primary:hover::after{left:130%}
+.fab{animation:ring 2.6s ease-out infinite}
+.fab:hover{animation:wob .5s ease}
+.fav.beat{animation:beat .6s cubic-bezier(.34,1.56,.64,1)}
+.rate button{transition:transform .15s}.rate button:hover{transform:scale(1.3) rotate(-8deg)}
+.mchip{transition:transform .15s}.mchip:hover{transform:translateY(-2px) rotate(-2deg)}
+.mchip.on{animation:beat .4s cubic-bezier(.34,1.56,.64,1)}
+.tab[aria-pressed='true']{animation:beat .35s cubic-bezier(.34,1.56,.64,1)}
+.st.o{animation:glow 2s ease-in-out infinite}
+.card.hit{animation:hit .8s ease 3}
+dialog[open]{animation:dpop .3s cubic-bezier(.34,1.56,.64,1)}
+dialog[open]::backdrop{animation:fade .25s ease}
+.toast{transform:translateX(-50%) translateY(16px);transition:opacity .25s,transform .35s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+#goalbar{transition:width .9s cubic-bezier(.22,1,.36,1)}
+.bar i{transform-origin:left;animation:grow .8s cubic-bezier(.22,1,.36,1) both}
+.empty h2::before{content:'🍽️ ';display:inline-block;animation:bounce 1.6s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* ===== New background: fresh paper + food doodles ===== */
+:root{--bg:#F7F5EF;--surface:#FFFFFF;--ink:#17261F;--muted:#5E6F68;--line:#E4E0D6;--chip:#E6F2EC;--wash1:rgba(15,181,166,.16);--wash2:rgba(255,201,60,.14);--hl:rgba(15,181,166,.28);--shadow:0 10px 30px rgba(23,38,31,.10);--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220' fill='none' stroke='%23A89479' stroke-opacity='.4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='48' cy='48' r='16'/%3E%3Ccircle cx='48' cy='48' r='5'/%3E%3Cpath d='M36 38l4 3M58 36l-3 4M60 56l-4-2M38 58l4-3'/%3E%3Cpath d='M150 40c18-6 34 6 30 22-2 8-10 12-18 10 6-4 6-10 0-14-6-4-12-8-12-18z'/%3E%3Cpath d='M44 150h56a28 26 0 0 1-56 0z'/%3E%3Cpath d='M60 138c-4-6 4-8 0-14M76 138c-4-6 4-8 0-14M92 138c-4-6 4-8 0-14'/%3E%3Cpath d='M160 150l4 12 12 4-12 4-4 12-4-12-12-4 12-4z'/%3E%3Ccircle cx='110' cy='104' r='2'/%3E%3Ccircle cx='196' cy='104' r='2'/%3E%3Ccircle cx='16' cy='110' r='2'/%3E%3C/svg%3E")}
+@media (prefers-color-scheme:dark){:root:not([data-theme='light']){--bg:#0E1614;--surface:#16231F;--ink:#EDF7F3;--muted:#9DB8AF;--line:#2A403A;--chip:#1F322C;--wash1:rgba(15,181,166,.2);--wash2:rgba(124,77,255,.14);--hl:rgba(15,181,166,.4);--shadow:0 10px 30px rgba(0,0,0,.45);--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220' fill='none' stroke='%23FFFFFF' stroke-opacity='.07' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='48' cy='48' r='16'/%3E%3Ccircle cx='48' cy='48' r='5'/%3E%3Cpath d='M36 38l4 3M58 36l-3 4M60 56l-4-2M38 58l4-3'/%3E%3Cpath d='M150 40c18-6 34 6 30 22-2 8-10 12-18 10 6-4 6-10 0-14-6-4-12-8-12-18z'/%3E%3Cpath d='M44 150h56a28 26 0 0 1-56 0z'/%3E%3Cpath d='M60 138c-4-6 4-8 0-14M76 138c-4-6 4-8 0-14M92 138c-4-6 4-8 0-14'/%3E%3Cpath d='M160 150l4 12 12 4-12 4-4 12-4-12-12-4 12-4z'/%3E%3Ccircle cx='110' cy='104' r='2'/%3E%3Ccircle cx='196' cy='104' r='2'/%3E%3Ccircle cx='16' cy='110' r='2'/%3E%3C/svg%3E")}}
+:root[data-theme='dark']{--bg:#0E1614;--surface:#16231F;--ink:#EDF7F3;--muted:#9DB8AF;--line:#2A403A;--chip:#1F322C;--wash1:rgba(15,181,166,.2);--wash2:rgba(124,77,255,.14);--hl:rgba(15,181,166,.4);--shadow:0 10px 30px rgba(0,0,0,.45);--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220' fill='none' stroke='%23FFFFFF' stroke-opacity='.07' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='48' cy='48' r='16'/%3E%3Ccircle cx='48' cy='48' r='5'/%3E%3Cpath d='M36 38l4 3M58 36l-3 4M60 56l-4-2M38 58l4-3'/%3E%3Cpath d='M150 40c18-6 34 6 30 22-2 8-10 12-18 10 6-4 6-10 0-14-6-4-12-8-12-18z'/%3E%3Cpath d='M44 150h56a28 26 0 0 1-56 0z'/%3E%3Cpath d='M60 138c-4-6 4-8 0-14M76 138c-4-6 4-8 0-14M92 138c-4-6 4-8 0-14'/%3E%3Cpath d='M160 150l4 12 12 4-12 4-4 12-4-12-12-4 12-4z'/%3E%3Ccircle cx='110' cy='104' r='2'/%3E%3Ccircle cx='196' cy='104' r='2'/%3E%3Ccircle cx='16' cy='110' r='2'/%3E%3C/svg%3E")}
+body{background-color:var(--bg);background-image:radial-gradient(900px 520px at 50% -8%,var(--wash1),transparent 70%),radial-gradient(700px 480px at 100% 100%,var(--wash2),transparent 70%);background-attachment:fixed}
+body::after{content:'';position:fixed;inset:0;z-index:-1;background:var(--pat);pointer-events:none;animation:bgdrift 90s linear infinite}
+@keyframes bgdrift{to{background-position:220px 220px}}
+/* ===== New animated banner (replaces the violet) ===== */
+.hero{background:radial-gradient(closest-side,rgba(255,120,90,.55),transparent) 0 0/70% 90% no-repeat,radial-gradient(closest-side,rgba(255,196,80,.38),transparent) 100% 100%/60% 80% no-repeat,linear-gradient(120deg,#0B6B63,#0F9D8A,#1C7F5A,#0B6B63) 0% 50%/300% 300%;box-shadow:0 18px 40px rgba(15,157,138,.3);animation:heroflow 14s ease-in-out infinite}
+@keyframes heroflow{0%,100%{background-position:0% 0%,100% 100%,0% 50%}50%{background-position:60% 80%,30% 10%,100% 50%}}
+.hero .btn{background:rgba(0,0,0,.24);border-color:rgba(255,255,255,.7)}
+.hero .btn:hover{background:rgba(0,0,0,.4)}
+/* ===== Colourless animated banner ===== */
+.hero{background:none;box-shadow:none;animation:none;color:var(--ink);padding:8px 4px 66px;border-radius:0}
+.hero::after{display:none}
+.hero::before{content:'🍜 🥘 🌮 🍣 🥗 🍰 🧆 🍕 🍛 🥟 🍩 🍔 🍜 🥘 🌮 🍣 🥗 🍰 🧆 🍕 🍛 🥟 🍩 🍔 ';position:absolute;inset:auto auto 8px 0;width:max-content;white-space:nowrap;font-size:1.9rem;letter-spacing:22px;opacity:1;background:none;animation:marq 32s linear infinite}
+@keyframes marq{to{transform:translateX(-50%)}}
+@keyframes rise{from{opacity:0;transform:translateY(28px) rotate(-3deg)}to{opacity:1;transform:none}}
+@keyframes bobtxt{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes under{to{background-size:100% 4px}}
+.hero h1{color:var(--ink);text-shadow:none;max-width:none}
+.hero h1 span{display:inline-block;background:linear-gradient(var(--ink),var(--ink)) 0 100%/0 4px no-repeat;animation:rise .8s cubic-bezier(.34,1.56,.64,1) both,bobtxt 4s ease-in-out 1.6s infinite}
+.hero h1 span:nth-child(2){animation-delay:.25s,1.9s}
+.hero h1 span:nth-child(3){animation-delay:.5s,2.2s,.5s;animation-name:rise,bobtxt,under;animation-duration:.8s,4s,1s;animation-fill-mode:both,none,forwards;animation-iteration-count:1,infinite,1;animation-delay:.5s,2.2s,1.2s}
+.hero .sub{color:var(--muted)}
+.who{background:var(--chip);color:var(--ink)}
+.hero .btn{background:transparent;color:var(--ink);border-color:var(--ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+.hero .btn:hover{background:var(--chip)}
+/* ===== App lock ===== */
+#lock{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background-color:var(--bg);background-image:var(--pat);padding:20px;overflow:auto}
+.lk{width:min(400px,100%);background:var(--surface);border-radius:28px;padding:28px 24px;box-shadow:var(--shadow);text-align:center;display:grid;gap:14px}
+.lk h2{font:800 1.6rem var(--display);margin:0}
+.lk p{margin:0;color:var(--muted)}
+.lk input{text-align:center;letter-spacing:.5em;font-size:1.3rem;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;width:100%}
+.lk input::placeholder{letter-spacing:normal;font-size:1rem}
+.lk .btn{width:100%}
+.lkm{display:grid;gap:10px;text-align:left}
+.lkm .opt{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:16px}
+.opt .ok{margin-left:auto;font-weight:700;color:var(--teal)}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.toast{z-index:10001}
+#lk-msg:empty{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <div>
+    <div class="who" id="who">Connecting…</div><h1><span>Taste it.</span> <span>Save it.</span> <span>Find it again.</span></h1>
+    <p class="sub">Your own private diary of dishes, restaurants and weekly markets.</p>
+  </div>
+  <div class="row">
+    <button class="btn" id="surprise">Surprise me</button>
+    <button class="btn" id="backup">Backup</button><button class="btn" id="chatbtn">💬 Ask Foodie</button><button class="btn" id="alertbtn">🔔 Alerts</button><button class="btn" id="themebtn">🌓 Theme</button><button class="btn" id="lockbtn">🔒 App lock</button>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Sections"><button class="tab" data-tab="dish" aria-pressed="true">Favourite dishes</button><button class="tab" data-tab="mkt" aria-pressed="false">Weekly markets</button><button class="tab" data-tab="eat" aria-pressed="false">What to eat?</button><button class="tab" data-tab="ins" aria-pressed="false">Insights</button></nav>
+<div id="v-dish">
+<section class="stats" id="stats" aria-label="Summary"></section>
+
+<div class="tools">
+  <input id="q" type="search" placeholder="Search dishes, restaurants or places" aria-label="Search">
+  <select id="sort" aria-label="Sort">
+    <option value="new">Newest first</option>
+    <option value="top">Highest rated</option>
+    <option value="az">Restaurant A–Z</option><option value="near">Nearest to me</option><option value="price">Price: low to high</option><option value="vis">Most visited</option>
+  </select>
+</div>
+<div class="chips" id="chips"></div>
+<main class="grid" id="grid"></main>
+</div>
+<div id="v-mkt" hidden>
+<div class="today" id="mtoday"></div>
+<div class="grid" id="mgrid"></div></div>
+<div id="v-eat" hidden>
+<div class="today" id="etitle"></div>
+<div class="chips" id="wchips"></div>
+<div class="grid" id="egrid"></div>
+<h2 class="ph" id="ptitle"></h2>
+<div class="grid" id="pgrid"></div>
+<p class="note" style="margin-top:18px;color:var(--muted)">This page can’t read live forecasts, so the weather starts as a guess from today’s date. Tap the one that matches outside. Open or closed is worked out from each place’s weekly hours and your clock, so recent changes may differ. “Get directions” opens Google Maps.</p>
+<button class="btn primary" data-act="chat">💬 Still confused? Ask Foodie</button></div>
+<div id="v-ins" hidden>
+<div class="stats" id="istats"></div>
+<div class="stat" style="margin-bottom:22px"><b id="goaltxt"></b><div class="bar" style="margin:8px 0 0"><i id="goalbar" style="width:0;flex:none"></i></div><label style="margin-top:10px;font-weight:500">Monthly goal (dishes)<input id="goalin" inputmode="numeric" style="max-width:120px"></label></div>
+<h2 class="ph">Moods you eat in</h2><div id="imood"></div>
+<h2 class="ph">Spending, last 6 months</h2><div id="ispend"></div>
+<div class="stat" id="streak" style="margin-bottom:22px"></div><h2 class="ph">Top places</h2><div id="itop"></div>
+<h2 class="ph">Time to revisit</h2><div id="irev"></div>
+<h2 class="ph">Badges</h2><div id="ibadge"></div>
+<button class="btn" id="splitbtn" style="margin-top:14px">🧾 Split a bill</button> <button class="btn" id="copybtn" style="margin-top:14px">📋 Copy my food list</button>
+</div>
+</div>
+
+<button class="btn primary fab" id="add">+ Add a dish</button>
+<div class="toast" id="toast" role="status"></div>
+<div id="lock" hidden><div class="lk" id="lk">
+<div style="font-size:2.4rem">🔒</div><h2 id="lk-t">Dish Diary</h2><p id="lk-s"></p><p id="lk-msg" style="font-weight:600;color:var(--accent)"></p>
+<div id="lk-unlock" hidden style="display:grid;gap:12px">
+<input id="lk-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Enter PIN" aria-label="PIN">
+<button class="btn primary" id="lk-go">Unlock</button>
+<button class="btn" id="lk-bio" hidden>👆 Use fingerprint or face</button>
+<button class="link" id="lk-forgot">Forgot PIN?</button></div>
+<div id="lk-setup" class="lkm" hidden>
+<div class="opt"><span>🔢</span><div><b>PIN</b><br><small>Works on every device</small></div><span class="ok" id="ok-pin"></span></div>
+<input id="lk-p1" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Create a PIN (4 to 6 digits)">
+<input id="lk-p2" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Confirm PIN">
+<button class="btn primary" id="lk-savepin">Save PIN</button>
+<div class="opt"><span>👆</span><div><b>Fingerprint or face</b><br><small>Uses your device: Touch ID, Face ID, Windows Hello</small></div><span class="ok" id="ok-bio"></span></div>
+<button class="btn" id="lk-addbio">Add fingerprint or face</button>
+<button class="btn" id="lk-lock">Lock now</button>
+<button class="btn primary" id="lk-done">Done</button>
+<button class="link" id="lk-remove">Turn app lock off</button></div>
+</div></div>
+<dialog id="cdlg"><div class="dlg"><h2>Ask Foodie 🍽️</h2><div id="clog" class="clog" aria-live="polite"></div><div class="row"><input id="cin" placeholder="e.g. It’s raining, what should I eat?" aria-label="Message"><button class="btn primary" id="csend">Send</button></div><div class="row" style="justify-content:space-between"><button class="link" id="cclear">Clear chat</button><button class="btn" id="cclose">Close</button></div></div></dialog>
+<dialog id="adlg"><div class="dlg"><h2>Alerts 🔔</h2><p style="margin:0;color:var(--muted)">Alerts show up while this page is open in your browser. For reminders when it’s closed, use Add to calendar on a market.</p>
+<label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="a-meal" style="width:auto"> Meal-time food ideas based on the weather</label>
+<div class="two"><label>Lunch time<input type="time" id="a-lunch"></label><label>Dinner time<input type="time" id="a-dinner"></label></div>
+<label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="a-mkt" style="width:auto"> Morning alert on market days (8:00)</label>
+<div class="row" style="justify-content:flex-end"><button class="btn" id="a-test">Send test</button><button class="btn primary" id="a-save">Save</button></div></div></dialog>
+<dialog id="sdlg"><div class="dlg"><h2>Split a bill 🧾</h2>
+<div class="two"><label>Bill total (₹)<input id="s-total" inputmode="decimal" placeholder="e.g. 1450"></label><label>People<input id="s-n" inputmode="numeric" value="2"></label></div>
+<label>Tip %<input id="s-tip" inputmode="numeric" value="5"></label>
+<div class="today" id="s-out" style="margin:0">Enter the bill to see each share.</div>
+<div class="row" style="justify-content:flex-end"><button class="btn" id="s-close">Close</button></div></div></dialog>
+<dialog id="mdlg">
+<form id="mform" method="dialog">
+  <h2 id="mtitle">Add a weekly market</h2>
+  <label>Market name<input id="m-name" required placeholder="e.g. Sunday organic market"></label>
+  <div class="locbox"><label>Area<input id="m-area" placeholder="Area name (optional if you pin it)"></label><div class="row"><button type="button" class="btn" id="m-pin">📍 Use my current location</button><span class="pinst" id="m-pinst"></span></div></div>
+  <div class="two"><label>Day<select id="m-day"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label><label>Opens<input type="time" id="m-start" required></label></div>
+  <div class="two"><label>Closes<input type="time" id="m-end"></label><label>Notes (optional)<input id="m-note" placeholder="e.g. fresh fish, bring bags"></label></div>
+  <div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="mcancel">Cancel</button><button type="submit" class="btn primary">Save market</button></div>
+</form>
+</dialog>
+
+<dialog id="dlg">
+<form id="form" method="dialog">
+  <h2 id="ftitle">Add a dish</h2>
+  <label>Dish name<input id="f-dish" required placeholder="e.g. Butter garlic prawns"></label>
+  <label>Restaurant<input id="f-rest" required placeholder="e.g. Paradise Biryani"></label>
+  <div class="locbox"><label>Location<input id="f-loc" placeholder="Area name (optional if you pin it)"></label><div class="row"><button type="button" class="btn" id="f-pin">📍 Use my current location</button><span class="pinst" id="f-pinst"></span></div></div>
+  <div class="two">
+    <label>Cuisine<select id="f-cui"></select></label>
+    <label>Price per plate (optional)<input id="f-price" inputmode="numeric" placeholder="e.g. 350"></label>
+  </div>
+  <div>
+    <b style="font-size:.92rem">Your rating</b>
+    <div class="rate" id="rate" role="group" aria-label="Rating"></div>
+  </div>
+  <div class="two"><label>Diet<select id="f-diet"><option value="">Not set</option><option value="veg">🟢 Veg</option><option value="egg">🟡 Egg</option><option value="non">🔴 Non-veg</option></select></label><label>Spice level<select id="f-spice"><option value="0">Mild</option><option value="1">🌶️ Medium</option><option value="2">🌶️🌶️ Hot</option><option value="3">🌶️🌶️🌶️ Fire</option></select></label></div>
+  <div><b style="font-size:.92rem">Your mood when you ate this (optional)</b><div class="moods" id="moods"></div></div>
+  <label>Notes (optional)<textarea id="f-note" rows="2" placeholder="What made it great? Order again with…"></textarea></label>
+  <label>Tags (optional, separated by commas)<input id="f-tags" placeholder="spicy, veg, date night"></label>
+  <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="f-wish" style="width:auto"> Not tried yet, save to my wishlist</label>
+  <label>Photo (optional): we show it on a spinning 3D plate<input id="f-photo" type="file" accept="image/*"></label>
+  <div class="pv" id="pv"></div>
+  <label>Picture style<select id="pxstyle"><option value="pixar">Pixar-inspired 3D</option><option value="kawaii">Chibi &amp; Kawaii</option></select></label>
+  <button type="button" class="btn" id="pxbtn">✨ Make an animated picture</button>
+  <div class="row" style="justify-content:flex-end">
+    <button type="button" class="btn" id="cancel">Cancel</button>
+    <button type="submit" class="btn primary" id="save">Save dish</button>
+  </div>
+</form>
+</dialog>
+
+<dialog id="bdlg">
+<div class="dlg">
+  <h2>Backup your diary</h2>
+  <p style="margin:0;color:var(--muted)">Your dishes are saved in this browser. Copy the text below to keep a backup, or paste a backup here and load it.</p>
+  <textarea id="btext" rows="8" aria-label="Backup data"></textarea>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn" id="bclose">Close</button>
+    <button class="btn primary" id="bload">Load backup</button>
+  </div>
+</div>
+</dialog>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== Supabase adapter: gives the app real email + password accounts ===== */
+var SUPABASE_URL=(window.APP_CONFIG||{}).url,SUPABASE_ANON_KEY=(window.APP_CONFIG||{}).anonKey;
+(function(){
+  if(!SUPABASE_URL||!SUPABASE_ANON_KEY||/PASTE/.test(SUPABASE_URL)){document.body.innerHTML='<p style="padding:24px;font:16px sans-serif">Open config.js and add your Supabase project URL and anon key.</p>';throw new Error("Missing Supabase config")}
+  var sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY),sessionP=null;
+  function ensure(){return sessionP||(sessionP=sb.auth.getSession().then(function(r){return r.data.session||showAuth()}))}
+  function showAuth(){return new Promise(function(res){
+    var o=document.createElement("div");
+    o.style.cssText="position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:20px;background:var(--bg);overflow:auto";
+    o.innerHTML='<div class="lk" style="width:min(400px,100%);background:var(--surface);border-radius:28px;padding:28px 24px;box-shadow:var(--shadow);text-align:center;display:grid;gap:12px"><div style="font-size:2.4rem">\ud83c\udf5b</div><h2 style="font:800 1.6rem var(--display);margin:0">Dish Diary</h2><p style="margin:0;color:var(--muted)" id="au-m">Sign in to open your private diary.</p><input id="au-n" placeholder="Your name (for new accounts)" style="letter-spacing:normal;font-size:1rem;text-align:left"><input id="au-e" type="email" placeholder="Email" autocomplete="email" style="letter-spacing:normal;font-size:1rem;text-align:left"><input id="au-p" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" style="letter-spacing:normal;font-size:1rem;text-align:left"><button class="btn primary" id="au-in" style="width:100%">Sign in</button><button class="btn" id="au-up" style="width:100%">Create account</button></div>';
+    document.body.appendChild(o);
+    var m=o.querySelector("#au-m");
+    function done(s){o.remove();var b=document.createElement("button");b.className="btn sm";b.textContent="Sign out";b.style.cssText="position:fixed;left:14px;bottom:14px;z-index:20";b.onclick=function(){sb.auth.signOut().then(function(){location.reload()})};document.body.appendChild(b);res(s)}
+    o.querySelector("#au-in").onclick=function(){sb.auth.signInWithPassword({email:o.querySelector("#au-e").value.trim(),password:o.querySelector("#au-p").value}).then(function(r){if(r.error)m.textContent=r.error.message;else done(r.data.session)})};
+    o.querySelector("#au-up").onclick=function(){sb.auth.signUp({email:o.querySelector("#au-e").value.trim(),password:o.querySelector("#au-p").value,options:{data:{name:o.querySelector("#au-n").value.trim()}}}).then(function(r){if(r.error)m.textContent=r.error.message;else if(r.data.session)done(r.data.session);else m.textContent="Check your email to confirm your account, then sign in."})}
+  })}
+  window.claude={use:function(name){
+    if(name==="user")return ensure().then(function(s){return{me:function(){return Promise.resolve({id:s.user.id,name:(s.user.user_metadata&&s.user.user_metadata.name)||s.user.email})}}});
+    if(name==="db")return ensure().then(function(s){var uid=s.user.id;return{collection:function(){return{
+      get:function(){return sb.from("diary").select("id,data").eq("user_id",uid).then(function(r){if(r.error)throw r.error;return{docs:r.data.map(function(x){return{id:x.id,data:function(){return x.data}}})}})},
+      doc:function(id){return{
+        set:function(obj){return sb.from("diary").upsert({user_id:uid,id:id,data:obj,updated_at:new Date().toISOString()}).then(function(r){if(r.error)throw r.error})},
+        delete:function(){return sb.from("diary").delete().eq("user_id",uid).eq("id",id).then(function(r){if(r.error)throw r.error})}}}}}}});
+    return Promise.resolve(null)}};
+})();
+</script>
+<script>
+(function(){
+var KEY="dishDiary.v1",CUI={"Indian":"🍛","Italian":"🍝","Chinese":"🥡","Japanese":"🍣","Mexican":"🌮","Thai":"🍜","Fast food":"🍔","Dessert":"🍰","Café":"☕","Other":"🍽️"};
+var items=[],filter="All",editId=null,photo="",rating=4,toon="",mood="",uid=null,db=null,synced={},here=null,pin=null,mpin=null,mk=[],mEdit=null,tab="dish";
+var $=function(i){return document.getElementById(i)};
+function K(k){return k+(uid?"."+uid:"")}
+function load(){try{items=JSON.parse(localStorage.getItem(K(KEY)))||[]}catch(e){items=[]}}
+function save(){try{localStorage.setItem(K(KEY),JSON.stringify(items))}catch(e){toast("Couldn’t save in this browser. Use Backup to keep a copy.")}push("d",items)}
+function push(p,arr){if(!db||!uid)return;var col=db.collection("data/users/"+uid),keep={};
+  arr.forEach(function(x){var id=p+x.id,s=JSON.stringify(x);keep[id]=1;if(synced[id]!==s){synced[id]=s;col.doc(id).set(x).catch(function(){delete synced[id];toast("Couldn’t sync to your account. Saved on this device.")})}});
+  Object.keys(synced).forEach(function(id){if(id.charAt(0)===p&&!keep[id]){delete synced[id];col.doc(id).delete().catch(function(){})}})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},Math.max(2400,m.length*70))}
+function stars(n){return "★".repeat(n)+"☆".repeat(5-n)}
+
+$("f-cui").innerHTML=Object.keys(CUI).map(function(c){return "<option>"+c+"</option>"}).join("");
+function drawRate(){$("rate").innerHTML=[1,2,3,4,5].map(function(n){return '<button type="button" data-n="'+n+'" class="'+(n<=rating?"on":"")+'" aria-label="'+n+' of 5">★</button>'}).join("")}
+$("rate").addEventListener("click",function(e){var b=e.target.closest("button");if(b){rating=+b.dataset.n;drawRate()}});
+
+function render(){
+  var q=$("q").value.trim().toLowerCase(),sort=$("sort").value;
+  var rests={},cuis={};
+  var ms={},ps=[];items.forEach(function(d){rests[d.rest.toLowerCase()]=1;cuis[d.cui]=(cuis[d.cui]||0)+1;if(+d.price>0)ps.push(+d.price);if(d.mood)ms[d.mood]=1});var avg=ps.length?"₹"+Math.round(ps.reduce(function(a,b){return a+b},0)/ps.length):"–";
+  var topC=Object.keys(cuis).sort(function(a,b){return cuis[b]-cuis[a]})[0]||"–";
+  $("stats").innerHTML='<div class="stat"><b>'+items.length+'</b><span>dishes saved</span></div><div class="stat"><b>'+Object.keys(rests).length+'</b><span>restaurants</span></div><div class="stat"><b>'+esc(topC)+'</b><span>most saved cuisine</span></div><div class="stat"><b>'+avg+'</b><span>average per plate</span></div>';
+  var names=["All","Favourites","Wishlist","Veg","Non-veg","Under ₹300"].concat(Object.keys(cuis)).concat(Object.keys(ms).map(function(m){return "Mood: "+m}));
+  $("chips").innerHTML=names.map(function(n){return '<button class="chip" data-f="'+esc(n)+'" aria-pressed="'+(n===filter)+'">'+esc(n)+'</button>'}).join("");
+  var list=items.filter(function(d){
+    if(filter==="Favourites"&&!d.fav)return false;if(filter==="Wishlist"&&!d.wish)return false;
+    if(filter==="Under ₹300"&&!(+d.price>0&&+d.price<=300))return false;if(filter==="Veg"&&d.diet!=="veg")return false;if(filter==="Non-veg"&&d.diet!=="non")return false;
+    if(filter.indexOf("Mood: ")===0){if(d.mood!==filter.slice(6))return false}else if(filter!=="All"&&filter!=="Favourites"&&filter!=="Wishlist"&&filter!=="Veg"&&filter!=="Non-veg"&&filter!=="Under ₹300"&&d.cui!==filter)return false;
+    return !q||(d.dish+" "+d.rest+" "+d.loc+" "+d.note+" "+(d.tags||[]).join(" ")).toLowerCase().indexOf(q)>-1});
+  list.sort(function(a,b){return sort==="near"?dist(a)-dist(b):sort==="vis"?(b.visits||1)-(a.visits||1):sort==="price"?(+a.price||1e9)-(+b.price||1e9):sort==="top"?b.rate-a.rate:sort==="az"?a.rest.localeCompare(b.rest):b.t-a.t});
+  if(!items.length){$("grid").innerHTML='<div class="empty" style="grid-column:1/-1"><h2>Your diary is empty</h2><p>Loved something today? Add the dish, the restaurant and where to find it.</p><button class="btn primary" data-act="add">Add your first dish</button></div>';return}
+  if(!list.length){$("grid").innerHTML='<div class="empty" style="grid-column:1/-1"><h2>No matches</h2><p>Try a different search or filter.</p></div>';return}
+  $("grid").innerHTML=list.map(function(d){
+    var map="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(d.lat!=null?d.lat+","+d.lng:d.rest+" "+d.loc);
+    return '<article class="card" id="c'+d.id+'"><div class="pic'+(d.photo?" two":"")+'">'+(d.photo?'<figure class="im"><img src="'+d.photo+'" alt="Original photo of '+esc(d.dish)+'"><figcaption>Original</figcaption></figure>'+(d.toon?pxfig(d.toon):plate(d.photo)):CUI[d.cui]||"🍽️")+'<button class="fav'+(d.id===popId&&d.fav?" beat":"")+'" data-act="fav" data-id="'+d.id+'" aria-pressed="'+!!d.fav+'" aria-label="Favourite">'+(d.fav?"❤️":"🤍")+'</button></div>'+
+    '<div class="body"><div class="rest">'+esc(d.rest)+'</div><h3 class="dish">'+esc(d.dish)+'</h3>'+(d.wish?'<span class="when">On my wishlist</span>':'<div class="stars" aria-label="'+d.rate+' out of 5">'+stars(d.rate)+'</div>')+
+    '<a class="loc" href="'+map+'" target="_blank" rel="noopener">📍 '+esc(d.loc||"Pinned location")+'</a>'+
+    '<div class="meta"><span>'+esc(d.cui)+'</span>'+(d.diet?'<span>'+({veg:"🟢 Veg",egg:"🟡 Egg",non:"🔴 Non-veg"})[d.diet]+'</span>':'')+(d.spice?'<span>'+"🌶️".repeat(d.spice)+'</span>':'')+(d.mood?'<span style="font-weight:600;color:var(--ink)">Mood: '+esc(d.mood)+'</span>':'')+(here&&d.lat!=null?'<span>'+dist(d).toFixed(1)+' km away</span>':'')+(d.price?"<span>₹"+esc(d.price)+" a plate</span>":"")+'<span>'+new Date(d.t).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})+'</span></div>'+
+    (d.note?'<p class="note">'+esc(d.note)+'</p>':"")+
+    (d.tags&&d.tags.length?'<div class="meta">'+d.tags.map(function(t){return '<span class="chip" style="cursor:default;padding:2px 10px">#'+esc(t)+'</span>'}).join("")+'</div>':"")+'<div class="acts"><button class="link" data-act="visit" data-id="'+d.id+'">'+(d.wish?"Mark as tried":"Ate here again ("+(d.visits||1)+"×)")+'</button><button class="link" data-act="share" data-id="'+d.id+'">Share</button><button class="link" data-act="edit" data-id="'+d.id+'">Edit</button><button class="link" data-act="del" data-id="'+d.id+'">Delete</button></div></div></article>'}).join("");
+}
+
+function openForm(d){
+  editId=d?d.id:null;photo=d?d.photo||"":"";toon=d?d.toon||"":"";mood=d?d.mood||"":"";rating=d?d.rate:4;pin=d&&d.lat!=null?{lat:d.lat,lng:d.lng}:null;
+  $("ftitle").textContent=d?"Edit dish":"Add a dish";
+  $("f-dish").value=d?d.dish:"";$("f-rest").value=d?d.rest:"";$("f-loc").value=d?d.loc:"";
+  $("f-cui").value=d?d.cui:"Indian";$("f-price").value=d?d.price:"";$("f-note").value=d?d.note:"";$("f-tags").value=d&&d.tags?d.tags.join(", "):"";$("f-wish").checked=!!(d&&d.wish);$("f-diet").value=d&&d.diet||"";$("f-spice").value=d&&d.spice||0;$("f-photo").value="";
+  drawRate();showPin("f");showPv();drawMoods();$("dlg").showModal();$("f-dish").focus();
+}
+$("add").onclick=function(){tab==="mkt"?openMkt():openForm()};
+$("cancel").onclick=function(){$("dlg").close()};
+$("f-photo").onchange=function(e){var f0=e.target.files[0];if(f0)toonize(f0)};
+function unusedPhoto(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){
+    var s=Math.min(1,500/im.width),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);photo=c.toDataURL("image/jpeg",.7)};im.src=r.result};r.readAsDataURL(f)};
+$("form").addEventListener("submit",function(e){
+  e.preventDefault();
+  var d={id:editId||Date.now(),t:Date.now(),dish:$("f-dish").value.trim(),rest:$("f-rest").value.trim(),loc:$("f-loc").value.trim(),lat:pin?pin.lat:null,lng:pin?pin.lng:null,cui:$("f-cui").value,price:$("f-price").value.trim(),note:$("f-note").value.trim(),tags:$("f-tags").value.split(",").map(function(s){return s.trim()}).filter(Boolean),wish:$("f-wish").checked,visits:1,rate:rating,photo:photo,toon:toon,mood:mood,diet:$("f-diet").value,spice:+$("f-spice").value,fav:false};
+  if(!d.loc&&!pin){toast("Pin your location or type the area");return}
+  if(editId){var o=items.filter(function(x){return x.id===editId})[0];d.t=o.t;d.fav=o.fav;d.visits=o.visits||1;d.last=o.last;items=items.map(function(x){return x.id===editId?d:x})}else items.unshift(d);
+  save();$("dlg").close();render();toast(editId?"Dish updated":"Dish saved")});
+
+document.addEventListener("click",function(e){
+  var c=e.target.closest(".chip");if(c){filter=c.dataset.f;render();return}
+  var b=e.target.closest("[data-act]");if(!b)return;
+  var id=+b.dataset.id,a=b.dataset.act;
+  if(a==="add")openForm();if(a==="madd")openMkt();if(a==="chat")openChat();if(a==="pwish")addPlace(+b.dataset.i);
+  if(a==="visit"){items.forEach(function(x){if(x.id===id){if(x.wish){x.wish=false;toast("Moved to your diary. Edit it to add a rating.")}else{x.visits=(x.visits||1)+1;x.last=Date.now()}}});save();render()}
+  if(a==="share"){var s=items.filter(function(x){return x.id===id})[0],tx=s.dish+" at "+s.rest+(s.loc?", "+s.loc:"")+" "+stars(s.rate)+" https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s.lat!=null?s.lat+","+s.lng:s.rest+" "+s.loc);if(navigator.share)navigator.share({text:tx}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(tx).then(function(){toast("Copied. Paste it to share")},function(){toast("Couldn’t copy")});else toast("Sharing isn’t available here")}
+  if(a==="medit")openMkt(mk.filter(function(x){return x.id===id})[0]);
+  if(a==="mdel"&&confirm("Delete this market?")){mk=mk.filter(function(x){return x.id!==id});saveM();renderM();toast("Market deleted")}
+  if(a==="fav"){popId=id;items.forEach(function(x){if(x.id===id)x.fav=!x.fav});save();render()}
+  if(a==="edit")openForm(items.filter(function(x){return x.id===id})[0]);
+  if(a==="del"&&confirm("Delete this dish from your diary?")){items=items.filter(function(x){return x.id!==id});save();render();toast("Dish deleted")}
+});
+$("q").oninput=render;$("sort").onchange=function(){if($("sort").value==="near"){if(!navigator.geolocation){toast("Location isn’t available here");$("sort").value="new";return}navigator.geolocation.getCurrentPosition(function(r){here={lat:r.coords.latitude,lng:r.coords.longitude};render()},function(){toast("Couldn’t get your location");$("sort").value="new";render()})}else render()};
+function dist(d){if(!here||d.lat==null)return 1e9;var r=Math.PI/180,x=(d.lng-here.lng)*r*Math.cos((d.lat+here.lat)/2*r),y=(d.lat-here.lat)*r;return Math.sqrt(x*x+y*y)*6371}
+$("surprise").onclick=function(){
+  if(!items.length){toast("Add a dish first");return}
+  filter="All";$("q").value="";render();
+  var d=items[Math.floor(Math.random()*items.length)],el=$("c"+d.id);
+  el.classList.add("hit");el.scrollIntoView({behavior:"smooth",block:"center"});
+  toast("Tonight: "+d.dish+" at "+d.rest);setTimeout(function(){el.classList.remove("hit")},3500)};
+$("backup").onclick=function(){$("btext").value=JSON.stringify({dishes:items,markets:mk});$("bdlg").showModal()};
+$("bclose").onclick=function(){$("bdlg").close()};
+$("bload").onclick=function(){
+  try{var a=JSON.parse($("btext").value);if(Array.isArray(a))a={dishes:a,markets:mk};if(!Array.isArray(a.dishes))throw 0;items=a.dishes;mk=a.markets||[];save();saveM();render();renderM();$("bdlg").close();toast("Backup loaded")}
+  catch(e){toast("That backup text isn’t valid")}};
+var MK="dishDiary.markets.v1",DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function loadM(){try{mk=JSON.parse(localStorage.getItem(K(MK)))||[]}catch(e){mk=[]}}
+function saveM(){try{localStorage.setItem(K(MK),JSON.stringify(mk))}catch(e){toast("Couldn’t save in this browser.")}push("m",mk)}
+function showPin(p){var v=p==="f"?pin:mpin;$(p+"-pinst").textContent=v?"Pinned ✓ "+v.lat.toFixed(4)+", "+v.lng.toFixed(4):"Stand at the spot, then tap to pin it."}
+function getPin(p){
+  if(!navigator.geolocation){toast("Location isn’t available here. Type the area instead.");return}
+  $(p+"-pinst").textContent="Finding you…";
+  navigator.geolocation.getCurrentPosition(function(r){var v={lat:r.coords.latitude,lng:r.coords.longitude};if(p==="f")pin=v;else mpin=v;showPin(p)},
+  function(){showPin(p);toast("Couldn’t get your location. Allow location access or type the area.")},{enableHighAccuracy:true,timeout:15000})}
+$("f-pin").onclick=function(){getPin("f")};$("m-pin").onclick=function(){getPin("m")};
+function pad(n){return String(n).padStart(2,"0")}
+function at(d,t){var x=new Date(d),p=(t||"00:00").split(":");x.setHours(+p[0],+p[1],0,0);return x}
+function day0(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function next(m){var n=new Date(),d=day0(n);d.setDate(d.getDate()+(m.day-d.getDay()+7)%7);if(at(d,m.end||m.start)<n)d.setDate(d.getDate()+7);return d}
+function until(d){return Math.round((day0(d)-day0(new Date()))/864e5)}
+function lab(d){var n=until(d);return n===0?"Today":n===1?"Tomorrow":"In "+n+" days"}
+function stamp(d,t){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"T"+t.replace(":","")+"00"}
+function cal(m){var d=next(m);return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("🛒 "+m.name)+"&dates="+stamp(d,m.start)+"/"+stamp(d,m.end||m.start)+"&recur="+encodeURIComponent("RRULE:FREQ=WEEKLY")+"&location="+encodeURIComponent(m.area||"")+"&details="+encodeURIComponent(m.note||"Weekly market")}
+function renderM(){
+  var list=mk.map(function(m){return{m:m,d:next(m)}}).sort(function(a,b){return at(a.d,a.m.start)-at(b.d,b.m.start)});
+  var now=list.filter(function(x){return until(x.d)===0});
+  $("mtoday").hidden=!list.length;
+  if(list.length)$("mtoday").innerHTML=now.length?"Open today: "+now.map(function(x){return esc(x.m.name)+" at "+x.m.start}).join(", "):"No market today. Next up: "+esc(list[0].m.name)+" ("+lab(list[0].d).toLowerCase()+")";
+  if(!list.length){$("mgrid").innerHTML='<div class="empty" style="grid-column:1/-1"><h2>No weekly markets yet</h2><p>Save the markets near you with their day and time. Each one counts down the days and can repeat in your calendar.</p><button class="btn primary" data-act="madd">Add a market</button></div>';return}
+  $("mgrid").innerHTML=list.map(function(x){var m=x.m,u="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(m.lat!=null?m.lat+","+m.lng:m.name+" "+m.area);
+    return '<article class="card"><div class="body"><span class="when'+(until(x.d)===0?" now":"")+'">'+lab(x.d)+" · "+x.d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+'</span><h3 class="dish">'+esc(m.name)+'</h3><div class="rest">Every '+DAYS[m.day]+", "+m.start+(m.end?"–"+m.end:"")+'</div><a class="loc" href="'+u+'" target="_blank" rel="noopener">📍 '+esc(m.area||"Pinned location")+'</a>'+(m.note?'<p class="note">'+esc(m.note)+'</p>':"")+'<div class="acts"><a class="btn sm primary" href="'+cal(m)+'" target="_blank" rel="noopener" style="text-decoration:none">Add to calendar</a><button class="link" data-act="medit" data-id="'+m.id+'">Edit</button><button class="link" data-act="mdel" data-id="'+m.id+'">Delete</button></div></div></article>'}).join("")}
+function openMkt(m){
+  mEdit=m?m.id:null;mpin=m&&m.lat!=null?{lat:m.lat,lng:m.lng}:null;
+  $("mtitle").textContent=m?"Edit market":"Add a weekly market";
+  $("m-name").value=m?m.name:"";$("m-area").value=m?m.area:"";$("m-day").value=m?m.day:6;$("m-start").value=m?m.start:"07:00";$("m-end").value=m?m.end||"":"12:00";$("m-note").value=m?m.note:"";
+  showPin("m");$("mdlg").showModal();$("m-name").focus()}
+$("mcancel").onclick=function(){$("mdlg").close()};
+$("mform").addEventListener("submit",function(e){
+  e.preventDefault();var area=$("m-area").value.trim();
+  if(!area&&!mpin){toast("Pin your location or type the area");return}
+  var m={id:mEdit||Date.now(),name:$("m-name").value.trim(),area:area,lat:mpin?mpin.lat:null,lng:mpin?mpin.lng:null,day:+$("m-day").value,start:$("m-start").value,end:$("m-end").value,note:$("m-note").value.trim()};
+  if(mEdit)mk=mk.map(function(x){return x.id===mEdit?m:x});else mk.push(m);
+  saveM();$("mdlg").close();renderM();toast("Market saved")});
+document.querySelector(".tabs").addEventListener("click",function(e){
+  var b=e.target.closest(".tab");if(!b)return;tab=b.dataset.tab;
+  document.querySelectorAll(".tab").forEach(function(t){t.setAttribute("aria-pressed",t===b)});
+  $("v-dish").hidden=tab!=="dish";$("v-mkt").hidden=tab!=="mkt";$("v-eat").hidden=tab!=="eat";var vv=$("v-"+tab);vv.classList.add("fx");setTimeout(function(){vv.classList.remove("fx")},1000);$("v-ins").hidden=tab!=="ins";$("add").hidden=tab==="eat"||tab==="ins";if(tab==="eat")renderEat();if(tab==="ins"){renderIns();streakCalc()}$("surprise").hidden=tab==="mkt";
+  $("add").textContent=tab==="mkt"?"+ Add a market":"+ Add a dish";if(tab==="mkt")renderM()});
+setInterval(function(){if(tab==="mkt")renderM()},60000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)renderM()});
+function guest(){$("who").textContent="Guest mode · saved on this device only"}
+function init(){
+  if(!window.claude||!claude.use){guest();return}
+  Promise.all([claude.use("user"),claude.use("db")]).then(function(r){
+    var u=r[0],d=r[1];if(!u||!d){guest();return}
+    return u.me().then(function(me){
+      if(!me.id){guest();return}
+      uid=me.id;db=d;$("who").textContent="Signed in as "+(me.name||"you")+" · private diary";
+      var gi=items,gm=mk;load();loadM();render();renderM();
+      return db.collection("data/users/"+uid).get().then(function(s){
+        var dd=[],mm=[];
+        s.docs.forEach(function(x){var v=x.data();if(!v)return;synced[x.id]=JSON.stringify(v);(x.id.charAt(0)==="m"?mm:dd).push(v)});
+        if(dd.length||mm.length){items=dd;mk=mm}
+        else{if(!items.length&&!mk.length){items=gi;mk=gm}push("d",items);push("m",mk)}
+        render();renderM()})})
+  }).catch(function(){guest()})}
+var W={hot:{e:"☀️",n:"Hot",kw:["lassi","ice","cold","salad","curd","juice","dessert","fruit","kulfi","smoothie"],ideas:[["🥭","Chilled lassi or buttermilk","Cools you down and sits light"],["🥗","Fresh salad or curd rice","Light on a hot day"],["🍧","Kulfi, falooda or ice cream","A sweet way to cool off"],["🥥","Coconut water or lime soda","Hydrates fast"]]},
+rain:{e:"🌧️",n:"Rainy",kw:["pakora","bajji","soup","chai","noodle","ramen","biryani","maggi","samosa","corn"],ideas:[["🍤","Crispy pakoras or mirchi bajji","The classic rainy-day snack"],["☕","Masala chai or filter coffee","Warm and comforting"],["🍜","Hot noodle soup or ramen","A bowl to warm up with"],["🌽","Roasted corn or samosa chaat","Hot street food mood"]]},
+cool:{e:"🌤️",n:"Pleasant",kw:["biryani","thali","pizza","pasta","dosa","curry","grill","kebab"],ideas:[["🍛","Biryani or a full thali","Perfect weather for a big meal"],["🍕","Pizza or pasta","Easy and shareable"],["🥞","Crispy dosa with chutneys","A pleasant-day favourite"],["🍢","Grills and kebabs","Good for eating outside"]]},
+cold:{e:"❄️",n:"Cold",kw:["soup","stew","halwa","chocolate","curry","paratha","dal","khichdi","chai"],ideas:[["🍲","Dal, khichdi or a hearty stew","Warm and filling"],["🫓","Stuffed paratha with butter","Comfort on a plate"],["🍫","Hot chocolate or gajar halwa","A warm sweet finish"],["🍵","Ginger tea or hot soup","Warms you up quickly"]]},
+humid:{e:"💧",n:"Humid",kw:["curd","lime","salad","rice","fish","coconut","juice","soda"],ideas:[["🍚","Curd rice with pickle","Light and cooling"],["🍋","Fresh lime soda or jaljeera","Refreshing and tangy"],["🐟","Light fish curry with rice","Not too heavy"],["🥒","Raita and cucumber salad","Keeps you cool"]]}};
+function guessW(){var m=new Date().getMonth();return m>=2&&m<=4?"hot":m>=5&&m<=8?"rain":m>=10||m<=1?"cold":"cool"}
+var wx=guessW();
+function slot(){var h=new Date().getHours();return h<11?"breakfast":h<16?"lunch":h<19?"snack time":"dinner"}
+function match(w){return items.filter(function(d){var s=(d.dish+" "+d.cui+" "+(d.tags||[]).join(" ")).toLowerCase();return w.kw.some(function(k){return s.indexOf(k)>-1})})}
+var MOODS=[["😄","Happy"],["🎉","Celebrating"],["😍","In love"],["🤤","Starving"],["😣","Stressed"],["😢","Sad"],["😴","Tired"],["🛋️","Chilling"]];
+function drawMoods(){$("moods").innerHTML=MOODS.map(function(m){var v=m[0]+" "+m[1];return '<button type="button" class="mchip'+(v===mood?" on":"")+'" data-m="'+v+'">'+v+'</button>'}).join("")}
+$("moods").addEventListener("click",function(e){var b=e.target.closest("[data-m]");if(!b)return;mood=mood===b.dataset.m?"":b.dataset.m;drawMoods()});
+function showPv(){$("pv").innerHTML=photo&&toon?'<figure class="im"><img src="'+photo+'" alt="Original"><figcaption>Original</figcaption></figure><figure class="im toon"><img class="anim" src="'+toon+'" alt="Cartoon version"><figcaption>Cartoon ✨</figcaption></figure>':photo?'<figure class="im"><img src="'+photo+'" alt="Photo"></figure>':""}
+function toonize(f){
+  var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){
+    var s=Math.min(1,360/im.width),w=Math.round(im.width*s),h=Math.round(im.height*s),c=document.createElement("canvas"),c2=document.createElement("canvas");
+    c.width=c2.width=w;c.height=c2.height=h;
+    c.getContext("2d").drawImage(im,0,0,w,h);photo=c.toDataURL("image/jpeg",.65);
+    var x=c2.getContext("2d");x.filter="blur(1.2px)";x.drawImage(im,0,0,w,h);x.filter="none";
+    var d=x.getImageData(0,0,w,h),p=d.data,n=w*h,g=new Float32Array(n),i,j,k,ch;
+    for(i=0;i<n;i++)g[i]=.3*p[i*4]+.59*p[i*4+1]+.11*p[i*4+2];
+    var o=x.createImageData(w,h),q=o.data;
+    for(j=0;j<h;j++)for(i=0;i<w;i++){k=j*w+i;var edge=false;
+      if(i>0&&j>0&&i<w-1&&j<h-1){var gx=g[k-w+1]+2*g[k+1]+g[k+w+1]-g[k-w-1]-2*g[k-1]-g[k+w-1],gy=g[k+w-1]+2*g[k+w]+g[k+w+1]-g[k-w-1]-2*g[k-w]-g[k-w+1];edge=Math.abs(gx)+Math.abs(gy)>130}
+      for(ch=0;ch<3;ch++){var v=g[k]+(p[k*4+ch]-g[k])*1.5;v=Math.max(0,Math.min(255,v));q[k*4+ch]=edge?35:Math.round(v/48)*48}
+      q[k*4+3]=255}
+    x.putImageData(o,0,0);toon=c2.toDataURL("image/jpeg",.7);showPv();toast("Cartoon version ready")};
+    im.onerror=function(){toast("Couldn’t read that photo")};im.src=r.result};r.readAsDataURL(f)}
+function plate(s){return '<div class="stage"><div class="tilt"><div class="disc"><img src="'+s+'" alt="Dish on a 3D plate"></div></div><i class="steam"></i><i class="steam s2"></i><i class="steam s3"></i><span class="cap">3D ✨</span></div>'}
+function showPv(){$("pv").innerHTML=photo?'<figure class="im"><img src="'+photo+'" alt="Original"><figcaption>Original</figcaption></figure>'+plate(photo):""}
+function toonize(f){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,480/im.width),c=document.createElement("canvas");c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext("2d").drawImage(im,0,0,c.width,c.height);photo=c.toDataURL("image/jpeg",.7);toon="";showPv();toast("3D plate view ready")};im.onerror=function(){toast("Couldn’t read that photo")};im.src=r.result};r.readAsDataURL(f)}
+function pxfig(s){return '<figure class="im toon"><img class="anim" src="'+s+'" alt="Pixar-style picture"><figcaption>Animated ✨</figcaption></figure>'}
+function showPv(){$("pv").innerHTML=photo?'<figure class="im"><img src="'+photo+'" alt="Original"><figcaption>Original</figcaption></figure>'+(toon?pxfig(toon):plate(photo)):""}
+var PXP="Look at this photo of a dish. Draw a Pixar-inspired 3D-animation-style illustration of that same food as ONE standalone SVG with viewBox 0 0 400 400. Make the food big, rounded, glossy and appetising with soft gradients, warm rim lighting, bright specular highlights and a soft ground shadow on a simple pastel background. Give the main food item a tiny cute face with large shiny eyes and a smile. Use only svg, defs, linearGradient, radialGradient, filter with feGaussianBlur, g, path, circle, ellipse and rect elements. No text, no scripts, no images, no external links. Return only the SVG code and nothing else.";
+var PXK="Look at this photo of a dish. Draw a Chibi and kawaii style illustration of that same food as ONE standalone SVG with viewBox 0 0 400 400. Use a soft pastel background, thick smooth rounded outlines in a darker shade of each colour, flat colours with a little shading, tiny sparkles, hearts and stars around it, and a sticker-like look. Make the food extra round and squishy with a tiny cute face: wide-set glossy dot eyes with white highlights, rosy blush cheeks and a small happy mouth. Use only svg, defs, linearGradient, radialGradient, g, path, circle, ellipse and rect elements (draw stars and hearts as paths). No text, no scripts, no images, no external links. Return only the SVG code and nothing else.";
+function pxPrompt(){return $("pxstyle").value==="kawaii"?PXK:PXP}
+function toBlob(u){var p=u.split(","),m=/:(.*?);/.exec(p[0])[1],b=atob(p[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new Blob([a],{type:m})}
+function pixar(){
+  var btn=$("pxbtn");
+  if(!photo){toast("Pick a photo first");return}
+  if(!window.claude||!claude.use){toast("Open this page from your Claude account to use this");return}
+  btn.disabled=true;btn.textContent="Drawing… this can take up to a minute";
+  function done(){btn.disabled=false;btn.textContent="✨ Make an animated picture"}
+  claude.use("sample").then(function(s){
+    if(!s){toast("This isn’t available here");done();return}
+    return s.limits().then(function(l){
+      if(!l||!l.images){toast("Photo input isn’t available here");done();return}
+      return s(pxPrompt(),{images:[toBlob(photo)],cache:false,modelTier:"complex"}).then(function(r){
+        var m=/<svg[\s\S]*<\/svg>/i.exec(r.text||"");
+        if(!m||/<script|\son[a-z]+\s*=|href\s*=|<image|foreignObject|@import|url\(\s*['"]?http/i.test(m[0])){toast("That drawing didn’t work. Try again.");done();return}
+        var v=m[0];if(!/xmlns=/.test(v))v=v.replace("<svg",'<svg xmlns="http://www.w3.org/2000/svg"');
+        toon="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(v);showPv();toast("Picture ready");done()})})
+  }).catch(function(){toast("Couldn’t draw it right now. Try again.");done()})}
+$("pxbtn").onclick=pixar;
+function stat(a,b){return '<div class="stat"><b>'+a+'</b><span>'+b+'</span></div>'}
+function bars(rows){var mx=Math.max.apply(null,rows.map(function(r){return r[1]}))||1;return rows.map(function(r){return '<div class="bar"><b>'+esc(r[0])+'</b><i style="width:'+Math.max(2,Math.round(r[1]/mx*60))+'%"></i><span>'+r[2]+'</span></div>'}).join("")}
+function renderIns(){
+  var n=new Date(),tried=items.filter(function(d){return !d.wish}),rs={},cu={},mo={},sp=[],i;
+  tried.forEach(function(d){rs[d.rest.toLowerCase()]=1;cu[d.cui]=1;if(d.mood)mo[d.mood]=(mo[d.mood]||0)+1});
+  var sum=function(a){return a.reduce(function(s,d){return s+(+d.price||0)},0)};
+  var inM=function(d,m){var t=new Date(d.t);return t.getMonth()===m.getMonth()&&t.getFullYear()===m.getFullYear()};
+  var cm=tried.filter(function(d){return inM(d,n)});
+  var avg=tried.length?(tried.reduce(function(s,d){return s+d.rate},0)/tried.length).toFixed(1):"–";
+  $("istats").innerHTML=stat("₹"+sum(cm),"spent this month")+stat(cm.length,"dishes this month")+stat(avg,"average rating")+stat(Object.keys(rs).length,"places tried");
+  var mr=Object.keys(mo).sort(function(a,b){return mo[b]-mo[a]}).map(function(k){return[k,mo[k],mo[k]+"×"]});
+  $("imood").innerHTML=mr.length?bars(mr):'<p style="color:var(--muted)">Pick a mood when you add dishes and it shows up here.</p>';
+  for(i=5;i>=0;i--){var m=new Date(n.getFullYear(),n.getMonth()-i,1),v=sum(tried.filter(function(d){return inM(d,m)}));sp.push([m.toLocaleDateString(undefined,{month:"short",year:"2-digit"}),v,"₹"+v])}
+  $("ispend").innerHTML=bars(sp);
+  var B=[["🍽️","First bite",tried.length>=1],["🔥","Regular (10 dishes)",tried.length>=10],["🌍","World tour (4 cuisines)",Object.keys(cu).length>=4],["📸","Photographer (5 photos)",items.filter(function(d){return d.photo}).length>=5],["🔖","Dreamer (5 on wishlist)",items.filter(function(d){return d.wish}).length>=5],["🛒","Market hunter",mk.length>=1],["❤️","Fan favourite (3 favourites)",items.filter(function(d){return d.fav}).length>=3]];
+  insExtra();$("ibadge").innerHTML=B.map(function(b){return '<span class="bdg'+(b[2]?"":" off")+'">'+b[0]+" "+b[1]+(b[2]?"":" 🔒")+'</span>'}).join("")}
+function calcSplit(){var t=+$("s-total").value,n=Math.max(1,Math.floor(+$("s-n").value)||1),tip=+$("s-tip").value||0,all=t*(1+tip/100);$("s-out").textContent=t>0?"Each pays ₹"+Math.ceil(all/n)+" (₹"+Math.round(all)+" in total with "+tip+"% tip)":"Enter the bill to see each share."}
+["s-total","s-n","s-tip"].forEach(function(id){$(id).addEventListener("input",calcSplit)});
+$("splitbtn").onclick=function(){$("sdlg").showModal();$("s-total").focus()};
+$("s-close").onclick=function(){$("sdlg").close()};
+try{var th=localStorage.getItem("dishDiary.theme");if(th)document.documentElement.setAttribute("data-theme",th)}catch(e){}
+$("themebtn").onclick=function(){var r=document.documentElement,c=r.getAttribute("data-theme"),dark=c?c==="dark":matchMedia("(prefers-color-scheme: dark)").matches,v=dark?"light":"dark";r.setAttribute("data-theme",v);try{localStorage.setItem("dishDiary.theme",v)}catch(e){}};
+function insExtra(){
+  var n=new Date(),tried=items.filter(function(d){return !d.wish}),g=P.goal||5,day=864e5;
+  var cm=tried.filter(function(d){var t=new Date(d.t);return t.getMonth()===n.getMonth()&&t.getFullYear()===n.getFullYear()}).length;
+  $("goaltxt").textContent=cm+" of "+g+" dishes this month"+(cm>=g?" 🎉":"");
+  $("goalbar").style.width=Math.min(100,Math.round(cm/g*100))+"%";$("goalin").value=g;
+  var by={};
+  tried.forEach(function(d){var k=d.rest.toLowerCase(),o=by[k]=by[k]||{n:d.rest,s:0,c:0,v:0,last:0,lat:d.lat,lng:d.lng,loc:d.loc};o.s+=d.rate;o.c++;o.v+=(d.visits||1);o.last=Math.max(o.last,d.last||d.t)});
+  var arr=Object.keys(by).map(function(k){return by[k]});
+  var top=arr.slice().sort(function(a,b){return b.s/b.c-a.s/a.c||b.v-a.v}).slice(0,5).map(function(o){return[o.n,o.s/o.c,"★ "+(o.s/o.c).toFixed(1)+" · "+o.v+" visit"+(o.v>1?"s":"")]});
+  $("itop").innerHTML=top.length?bars(top):'<p style="color:var(--muted)">Save a few dishes to see your top places.</p>';
+  var old=arr.filter(function(o){return o.s/o.c>=4&&Date.now()-o.last>30*day}).slice(0,4);
+  $("irev").innerHTML=old.length?old.map(function(o){return '<div class="bar"><b style="flex:1 1 auto">'+esc(o.n)+'</b><span>'+Math.floor((Date.now()-o.last)/day)+' days ago</span><a class="btn sm" style="text-decoration:none" target="_blank" rel="noopener" href="'+mapQ(o.lat!=null?o.lat+","+o.lng:o.n+" "+o.loc)+'">Directions</a></div>'}).join(""):'<p style="color:var(--muted)">Places you rated 4 stars or more but haven’t visited for 30 days show up here.</p>'}
+$("goalin").addEventListener("change",function(){P.goal=Math.max(1,Math.floor(+this.value)||5);saveP();insExtra()});
+$("copybtn").onclick=function(){var t=items.filter(function(d){return !d.wish}).map(function(d){return d.dish+" at "+d.rest+" ("+(d.loc||"pinned")+") "+stars(d.rate)}).join("\n");if(!t){toast("Add a dish first");return}if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast("Food list copied")},function(){toast("Couldn’t copy")});else toast("Copying isn’t available here")};
+var popId=0;
+function streakCalc(){
+  var days={};items.filter(function(d){return !d.wish}).forEach(function(d){[d.t,d.last].forEach(function(t){if(t)days[new Date(t).toDateString()]=1})});
+  var n=0,c=new Date();if(!days[c.toDateString()])c.setDate(c.getDate()-1);
+  while(days[c.toDateString()]){n++;c.setDate(c.getDate()-1)}
+  $("streak").innerHTML='<b>🔥 '+n+' day'+(n===1?'':'s')+'</b><span>food-logging streak. Add or revisit a dish each day to keep it going.</span>'}
+var L={pin:null,cred:null,skip:false,hid:0},fails=0,until0=0,locked=false,enc=new TextEncoder();
+try{var sl=JSON.parse(localStorage.getItem("dishDiary.lock"));if(sl){L.pin=sl.pin||null;L.cred=sl.cred||null;L.skip=!!sl.skip}}catch(e){}
+function saveL(){try{localStorage.setItem("dishDiary.lock",JSON.stringify({pin:L.pin,cred:L.cred,skip:L.skip}))}catch(e){}}
+function b64(buf){var s="",a=new Uint8Array(buf);for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function unb64(s){s=s.replace(/-/g,"+").replace(/_/g,"/");var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function hashPin(pin,salt){return crypto.subtle.importKey("raw",enc.encode(pin),"PBKDF2",false,["deriveBits"]).then(function(k){return crypto.subtle.deriveBits({name:"PBKDF2",salt:unb64(salt),iterations:100000,hash:"SHA-256"},k,256)}).then(b64)}
+function refreshOk(){$("ok-pin").textContent=L.pin?"✓ Set":"";$("ok-bio").textContent=L.cred?"✓ Added":"";$("lk-addbio").disabled=false;$("lk-lock").hidden=!L.pin;$("lk-remove").hidden=!L.pin}
+function showLock(mode){
+  document.querySelectorAll("dialog[open]").forEach(function(d){d.close()});
+  $("lock").hidden=false;locked=true;
+  $("lk-unlock").hidden=mode!=="unlock";$("lk-setup").hidden=mode!=="setup";
+  if(mode==="unlock"){$("lk-t").textContent="Welcome back";$("lk-s").textContent="Enter your PIN to open Dish Diary.";$("lk-bio").hidden=!L.cred;$("lk-pin").value="";setTimeout(function(){$("lk-pin").focus()},50)}
+  else{$("lk-t").textContent="Set up app lock";$("lk-s").textContent="Choose how you want to open your diary. You can skip this and add it later.";refreshOk()}}
+function unlockNow(){$("lock").hidden=true;locked=false;fails=0}
+function bioAuth(){return navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:"public-key",id:unb64(L.cred)}],userVerification:"required",timeout:60000}})}
+function regBio(){
+  if(!window.PublicKeyCredential||!navigator.credentials){toast("Fingerprint or face unlock isn’t supported in this browser");return}
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(ok){
+    if(!ok){toast("This device has no fingerprint or face unlock set up");return}
+    return navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Dish Diary"},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"dish-diary",displayName:"Dish Diary"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}}).then(function(c){L.cred=b64(c.rawId);saveL();refreshOk();toast("Fingerprint or face unlock added")})
+  }).catch(function(){toast("Couldn’t add it here. Try opening the page in its own browser tab.")})}
+$("lk-go").onclick=function(){
+  if(Date.now()<until0){toast("Too many tries. Wait a moment.");return}
+  hashPin($("lk-pin").value,L.pin.salt).then(function(h){
+    if(h===L.pin.hash){unlockNow();return}
+    fails++;var k=$("lk");k.classList.remove("shake");void k.offsetWidth;k.classList.add("shake");$("lk-pin").value="";
+    if(fails>=5){until0=Date.now()+30000;fails=0;toast("Too many wrong PINs. Try again in 30 seconds.")}else toast("Wrong PIN")})};
+$("lk-pin").addEventListener("keydown",function(e){if(e.key==="Enter")$("lk-go").click()});
+$("lk-bio").onclick=function(){bioAuth().then(unlockNow,function(){toast("Fingerprint or face check didn’t work. Use your PIN.")})};
+$("lk-forgot").onclick=function(){
+  var reset=function(){if(confirm("Turn app lock off? Your diary stays saved, but anyone using this device can open it.")){L.pin=null;L.cred=null;saveL();unlockNow()}};
+  if(L.cred)bioAuth().then(reset,function(){toast("Verify with your fingerprint or face to reset the PIN")});else reset()};
+$("lk-savepin").onclick=function(){
+  var a=$("lk-p1").value,b=$("lk-p2").value;
+  if(!/^\d{4,6}$/.test(a)){toast("Use 4 to 6 digits");return}
+  if(a!==b){toast("The two PINs don’t match");return}
+  if(!window.crypto||!crypto.subtle){toast("App lock isn’t supported in this browser");return}
+  var salt=b64(crypto.getRandomValues(new Uint8Array(16)));
+  hashPin(a,salt).then(function(h){L.pin={salt:salt,hash:h};L.skip=false;saveL();$("lk-p1").value="";$("lk-p2").value="";refreshOk();toast("PIN saved")})};
+$("lk-addbio").onclick=regBio;
+$("lk-lock").onclick=function(){showLock("unlock")};
+$("lk-done").onclick=function(){if(!L.pin){L.skip=true;saveL()}unlockNow()};
+$("lk-remove").onclick=function(){if(confirm("Turn app lock off?")){L.pin=null;L.cred=null;saveL();refreshOk();toast("App lock is off")}};
+$("lockbtn").onclick=function(){showLock("setup")};
+document.addEventListener("visibilitychange",function(){if(document.hidden)L.hid=Date.now();else if(L.pin&&!locked&&Date.now()-L.hid>120000)showLock("unlock")});
+function lkmsg(t){var m=$("lk-msg");if(m)m.textContent=t;toast(t)}
+function regBio(){
+  if(!L.pin){lkmsg("Save a PIN first, then add fingerprint or face.");return}
+  if(!window.isSecureContext||!window.PublicKeyCredential||!navigator.credentials){lkmsg("This browser doesn’t support fingerprint or face unlock here. Your PIN still works.");return}
+  lkmsg("Waiting for your fingerprint or face…");
+  var chk=PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable():Promise.resolve(true);
+  chk.then(function(ok){
+    if(!ok){lkmsg("No fingerprint or face unlock is set up on this device. Turn it on in your device settings first.");return}
+    return navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Dish Diary"},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"dish-diary",displayName:"Dish Diary"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}}).then(function(c){L.cred=b64(c.rawId);saveL();refreshOk();lkmsg("Fingerprint or face unlock added ✓")})
+  }).catch(function(e){
+    var n=e&&e.name;
+    lkmsg(n==="SecurityError"||n==="NotSupportedError"?"This view blocks fingerprint access. Open the page in its own browser tab, not inside an app, and try again.":n==="NotAllowedError"?"It was cancelled, timed out or blocked. If you’re inside another app, open the page in your browser instead.":"Couldn’t add it ("+(n||"error")+"). Your PIN still works.")})}
+var onlyOpen=false;
+var PL=[
+{n:"Uff Uff Mirchi Bajji Point",a:"Banjara Hills",lat:17.4204058,lng:78.443961,r:4.5,p:"ChIJNfJMMjKXyzsRg3hbsByWQpw",f:"Mirchi bajji and egg bonda",c:"Fast food",w:"rain",h:"14:30-21:30",x:[0]},
+{n:"Gandhi Mirchi Bandi",a:"Chandanagar, BHEL",lat:17.4944324,lng:78.32095,r:4.1,p:"ChIJXWSbRmOTyzsRKLFi7eQjc7k",f:"Mirchi bajji",c:"Fast food",w:"rain",h:"06:30-10:30,16:00-22:00"},
+{n:"Irani Chai Ho Jaye & Snacks",a:"Begumpet",lat:17.4404806,lng:78.4821616,r:4.1,p:"ChIJhZYXQg-ayzsRDyY1jbWNzP0",f:"Irani chai and samosa",c:"Café",w:"rain,cold",h:"05:00-23:00"},
+{n:"Café Irani Chai",a:"Zamistanpur",lat:17.4064756,lng:78.4981174,r:4.2,p:"ChIJrSH3epuZyzsRxyh_WfiX93Y",f:"Irani chai with buns",c:"Café",w:"rain,cold",h:"07:00-23:00"},
+{n:"Irani chai wala",a:"Koti",lat:17.3820028,lng:78.4814046,r:4.3,p:"ChIJVaycXwSZyzsRsj4T2QRVvxo",f:"Irani chai and malai bun",c:"Café",w:"rain,cold",h:"04:30-24:00"},
+{n:"Al Shahi Faludah",a:"Masab Tank",lat:17.3985945,lng:78.4456011,r:4.8,p:"ChIJ2Q3bQQCXyzsRpo268Om2b00",f:"Shahi anjeer falooda",c:"Dessert",w:"hot",h:"11:00-25:30"},
+{n:"Lassi Store",a:"Ameerpet",lat:17.4389161,lng:78.4484618,r:4,p:"ChIJKa76ZF2RyzsRHlqmwSmoPms",f:"Mango lassi and milkshakes",c:"Dessert",w:"hot,humid",h:"13:00-25:00"},
+{n:"Famous Ice Cream & Chat",a:"MJ Market, Abids",lat:17.3843555,lng:78.4748868,r:4.1,p:"ChIJ____P32XyzsRr9xZqE9F7RU",f:"Anjeer and mango ice cream",c:"Dessert",w:"hot",h:"10:00-25:00"},
+{n:"Bombay Juice",a:"Ameerpet",lat:17.4346642,lng:78.4486622,r:4,p:"ChIJtbqF_S-RyzsRNWN6Ua9heQU",f:"Fresh seasonal juice",c:"Other",w:"hot,humid",h:"10:30-24:30"},
+{n:"Hotel Shadab",a:"Madina, Charminar",lat:17.368888,lng:78.4755104,r:4,p:"ChIJKyxGIoiXyzsRPY8PASGdTW0",f:"Mutton biryani",c:"Indian",w:"cool",h:"05:00-24:20"},
+{n:"Paradise Biryani",a:"Secunderabad",lat:17.4417141,lng:78.4872154,r:4,p:"ChIJG_3xjA-ayzsRFh3aJZ-Rbjg",f:"Biryani and double ka meetha",c:"Indian",w:"cool",h:"06:00-25:00"},
+{n:"Bawarchi Restaurant",a:"RTC X Roads",lat:17.406627,lng:78.4976861,r:4.1,p:"ChIJC5GIs-qZyzsRkIIAl7PFxwc",f:"Hyderabadi biryani",c:"Indian",w:"cool",h:"12:00-23:30"},
+{n:"Patangg Vegetarian Delight",a:"Kachiguda",lat:17.3889056,lng:78.4971554,r:4.7,p:"ChIJH-sZ0WOZyzsRDGBARZ3edYU",f:"Veg biryani, kulcha and hot soups",c:"Indian",w:"cool,cold",h:"11:45-23:30"},
+{n:"Ishtaa",a:"HITEC City",lat:17.4344891,lng:78.3742785,r:4.3,p:"ChIJIfN2naWRyzsRQ884HoebNm8",f:"Dosa platter and ghee karam idly",c:"Indian",w:"cool,humid",h:"07:00-15:30,18:00-22:30"},
+{n:"Punjabi Paratha House",a:"Shaikpet",lat:17.405993,lng:78.3918405,r:4.3,p:"ChIJHYkeaaSWyzsRU2VbxAp6vbs",f:"Aloo and paneer paratha",c:"Indian",w:"cold",h:"09:00-22:30"},
+{n:"Hot Parathas",a:"Bandlaguda Jagir",lat:17.354463,lng:78.3884718,r:3.9,p:"ChIJeR7koZmVyzsR6na3FrSanjM",f:"Stuffed parathas with chole",c:"Indian",w:"cold",h:"11:00-23:00"},
+{n:"Pakka Local",a:"Banjara Hills",lat:17.4185316,lng:78.4449637,r:4.3,p:"ChIJE61An0CXyzsR9ILhIMDxauE",f:"Chicken jade soup and Andhra specials",c:"Indian",w:"cold",h:"11:00-23:30"}];
+function rng(p,d){return(p.x&&p.x.indexOf(d)>-1)?[]:p.h.split(",").map(function(s){var a=s.split("-");return[mins(a[0]),mins(a[1])]})}
+function fmt(m){m=m%1440;var h=Math.floor(m/60),mm=m%60;return(h%12||12)+(mm?":"+pad(mm):"")+" "+(h>=12?"PM":"AM")}
+function state(p){
+  var n=new Date(),d=n.getDay(),m=n.getHours()*60+n.getMinutes(),i,t=rng(p,d),y=rng(p,(d+6)%7);
+  for(i=0;i<t.length;i++)if(m>=t[i][0]&&m<t[i][1])return{o:1,t:"Open · closes "+fmt(t[i][1])};
+  for(i=0;i<y.length;i++)if(m+1440<y[i][1])return{o:1,t:"Open · closes "+fmt(y[i][1])};
+  for(var k=0;k<7;k++){var s=rng(p,(d+k)%7);for(i=0;i<s.length;i++)if(k>0||s[i][0]>m)return{o:0,t:"Closed · opens "+(k===0?"":k===1?"tomorrow ":DAYS[(d+k)%7]+" ")+fmt(s[i][0])}}
+  return{o:0,t:"Closed"}}
+function places(){return PL.filter(function(p){return p.w.split(",").indexOf(wx)>-1}).map(function(p){return{p:p,s:state(p),d:dist(p)}}).sort(function(a,b){return b.s.o-a.s.o||(here?a.d-b.d:b.p.r-a.p.r)})}
+function placeList(){return places().slice(0,5).map(function(x){return x.p.n+" ("+x.p.f+", "+x.s.t+")"}).join("; ")}
+function addPlace(i){var p=PL[i];items.unshift({id:Date.now(),t:Date.now(),dish:p.f,rest:p.n,loc:p.a,lat:p.lat,lng:p.lng,cui:p.c,price:"",note:"",tags:[],wish:true,visits:1,rate:4,photo:"",fav:false});save();render();toast("Added to your wishlist")}
+function renderPlaces(){
+  var all=places(),list=all.filter(function(x){return !onlyOpen||x.s.o}),md=Math.min.apply(null,all.map(function(x){return x.d}));
+  $("ptitle").textContent="Places for "+W[wx].n.toLowerCase()+" weather"+(here?" near you":" in Hyderabad");
+  if(here&&md>60){$("pgrid").innerHTML='<div class="empty" style="grid-column:1/-1"><h2>No saved places near you yet</h2><p>This list covers Hyderabad for now. Ask Claude to add your city.</p></div>';return}
+  $("pgrid").innerHTML=list.slice(0,6).map(function(x){var p=x.p;
+    return '<article class="card"><div class="body"><span class="st '+(x.s.o?"o":"c")+'">'+(x.s.o?"🟢 ":"🔴 ")+esc(x.s.t)+'</span><h3 class="dish">'+esc(p.n)+'</h3><div class="rest">'+esc(p.f)+'</div><div class="meta"><span>★ '+p.r+'</span><span>'+esc(p.a)+'</span>'+(here?'<span>'+x.d.toFixed(1)+' km away</span>':'')+'</div><div class="acts"><a class="btn sm primary" style="text-decoration:none" href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lng+'&destination_place_id='+p.p+'" target="_blank" rel="noopener">Get directions</a><button class="link" data-act="pwish" data-i="'+PL.indexOf(p)+'">+ Wishlist</button></div></div></article>'}).join("")||'<div class="empty" style="grid-column:1/-1"><h2>Nothing open right now</h2><p>Turn off “Open now only” to see opening times.</p></div>'}
+function mapQ(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q)}
+function near(t){var q=t.split(/ or |,/)[0].trim().toLowerCase()+" open now";return here?"https://www.google.com/maps/search/"+encodeURIComponent(q)+"/@"+here.lat+","+here.lng+",15z":"https://www.google.com/maps/search/"+encodeURIComponent(q+" near me")}
+function getHere(){if(!navigator.geolocation){toast("Location isn’t available here");return}navigator.geolocation.getCurrentPosition(function(r){here={lat:r.coords.latitude,lng:r.coords.longitude};renderEat();toast("Location set. Nearby searches now centre on you.")},function(){toast("Couldn’t get your location. Allow access and try again.")})}
+function renderEat(){
+  var w=W[wx];
+  $("etitle").textContent=w.e+" It’s "+slot()+" and it feels "+w.n.toLowerCase()+". Here’s what fits.";
+  $("wchips").innerHTML=Object.keys(W).map(function(k){return '<button class="chip" data-w="'+k+'" aria-pressed="'+(k===wx)+'">'+W[k].e+" "+W[k].n+'</button>'}).join("")+'<button class="chip" data-loc="1" aria-pressed="'+!!here+'">📍 '+(here?"Using your location":"Use my location")+'</button><button class="chip" data-open="1" aria-pressed="'+onlyOpen+'">🟢 Open now only</button>';
+  $("egrid").innerHTML=match(w).slice(0,3).map(function(d){return '<article class="card"><div class="body"><span class="when now">From your diary</span><h3 class="dish">'+esc(d.dish)+'</h3><div class="rest">'+esc(d.rest)+'</div><div class="stars">'+(d.wish?"On your wishlist":stars(d.rate))+'</div><a class="loc" href="'+mapQ(d.lat!=null?d.lat+","+d.lng:d.rest+" "+d.loc)+'" target="_blank" rel="noopener">📍 Check if it’s open</a></div></article>'}).join("")+w.ideas.map(function(i){return '<article class="card"><div class="body"><div style="font-size:2.4rem">'+i[0]+'</div><h3 class="dish">'+i[1]+'</h3><div class="rest">'+i[2]+'</div></div></article>'}).join("");renderPlaces()}
+$("wchips").addEventListener("click",function(e){e.stopPropagation();if(e.target.closest("[data-open]")){onlyOpen=!onlyOpen;renderEat();return}if(e.target.closest("[data-loc]")){getHere();return}var b=e.target.closest("[data-w]");if(b){wx=b.dataset.w;renderEat()}});
+var chat=[];
+function addMsg(c,t){var d=document.createElement("div");d.className="msg "+c;d.textContent=t;$("clog").appendChild(d);$("clog").scrollTop=1e6;return d}
+function greet(){if(!$("clog").children.length)addMsg("b","Hi, I’m Foodie! Tell me your mood, the weather or what you’re craving, and I’ll help you decide what to eat or drink.")}
+function openChat(){greet();if(!$("cdlg").open)$("cdlg").showModal();$("cin").focus()}
+function ctx(){var n=new Date(),list=items.filter(function(d){return !d.wish}).slice(0,15).map(function(d){return d.dish+" at "+d.rest+" ("+d.cui+", "+d.rate+"/5)"}).join("; ");
+  return "You are Foodie, a friendly food-decision assistant inside the Dish Diary app. Reply in under 120 words with 2 or 3 concrete options and a one-line reason each. Ask at most one question. It is "+n.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" on "+n.toLocaleDateString()+" ("+slot()+"). The user says the weather feels "+W[wx].n.toLowerCase()+". Their saved dishes: "+(list||"none yet")+". Places near them for this weather: "+placeList()+". Prefer their saved favourites when they fit, or these places (say whether each is open or closed). Stay on food and drink topics."}
+function ask(txt){
+  chat.push({role:"user",content:txt});addMsg("u",txt);var el=addMsg("b","Thinking…");
+  if(!window.claude||!claude.use){el.textContent="Foodie needs this page opened from your Claude account.";chat.pop();return}
+  claude.use("sample").then(function(s){
+    if(!s){el.textContent="Foodie isn’t available here. Open this page from your Claude account to chat.";chat.pop();return}
+    var msgs=chat.map(function(m,i){return i===0?{role:"user",content:ctx()+"\n\nUser: "+m.content}:m});
+    return s(msgs,{cache:false,modelTier:"quick",onText:function(r){el.textContent=r.text}}).then(function(r){chat.push({role:"assistant",content:r.text});el.textContent=r.text})
+  }).catch(function(){el.textContent="Couldn’t reach Foodie right now. Try again in a moment.";chat.pop()})}
+function send(){var t=$("cin").value.trim();if(!t)return;$("cin").value="";ask(t)}
+$("csend").onclick=send;$("cin").addEventListener("keydown",function(e){if(e.key==="Enter")send()});
+$("cclose").onclick=function(){$("cdlg").close()};$("cclear").onclick=function(){chat=[];$("clog").innerHTML="";greet()};
+$("chatbtn").onclick=openChat;
+var P={meal:false,lunch:"12:30",dinner:"19:30",mkt:false,fired:{}};
+try{Object.assign(P,JSON.parse(localStorage.getItem("dishDiary.prefs")))}catch(e){}
+function saveP(){try{localStorage.setItem("dishDiary.prefs",JSON.stringify(P))}catch(e){}}
+function notify(t,b){toast(t+" "+b);try{if(window.Notification&&Notification.permission==="granted")new Notification(t,{body:b})}catch(e){}}
+function mealPing(s){var w=W[wx],m=match(w)[0],i=w.ideas[Math.floor(Math.random()*w.ideas.length)];notify("Time for "+s+" "+i[0],m?"Feeling "+w.n.toLowerCase()+"? Try "+m.dish+" at "+m.rest+" again.":"Feeling "+w.n.toLowerCase()+"? Try "+i[1].toLowerCase()+".")}
+function mins(t){var p=t.split(":");return +p[0]*60+ +p[1]}
+function tick(){
+  var n=new Date(),cur=n.getHours()*60+n.getMinutes(),day=n.toDateString();
+  function due(k,t,fn){var s=mins(t);if(cur>=s&&cur-s<=15&&P.fired[k]!==day){P.fired[k]=day;saveP();fn()}}
+  if(P.meal){due("l",P.lunch,function(){mealPing("lunch")});due("d",P.dinner,function(){mealPing("dinner")})}
+  if(P.mkt)due("m","08:00",function(){var t=mk.filter(function(m){return until(next(m))===0});if(t.length)notify("Market day 🛒",t.map(function(m){return m.name+" at "+m.start}).join(", "))})}
+setInterval(tick,30000);
+$("alertbtn").onclick=function(){$("a-meal").checked=P.meal;$("a-lunch").value=P.lunch;$("a-dinner").value=P.dinner;$("a-mkt").checked=P.mkt;$("adlg").showModal()};
+function askPerm(){try{if(window.Notification&&Notification.permission==="default")Notification.requestPermission()}catch(e){}}
+$("a-test").onclick=function(){askPerm();notify("Dish Diary 🔔","Alerts are working.")};
+$("a-save").onclick=function(){P.meal=$("a-meal").checked;P.lunch=$("a-lunch").value||"12:30";P.dinner=$("a-dinner").value||"19:30";P.mkt=$("a-mkt").checked;saveP();if(P.meal||P.mkt)askPerm();$("adlg").close();toast("Alerts saved");tick()};
+loadM();load();render();renderM();init();if(L.pin)showLock("unlock");else if(!L.skip)showLock("setup");$("v-dish").classList.add("fx");setTimeout(function(){$("v-dish").classList.remove("fx")},1000);
+})();
+</script>
+<script>
+if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+var dip=null;
+addEventListener("beforeinstallprompt",function(e){e.preventDefault();dip=e;var r=document.querySelector(".hero .row"),b=document.createElement("button");b.className="btn";b.textContent="\ud83d\udcf2 Install app";b.onclick=function(){dip.prompt();dip=null;b.remove()};if(r)r.appendChild(b)});
+</script>
+</body>
+</html>
